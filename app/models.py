@@ -1,25 +1,32 @@
 from . import db
 
 class UserProfile(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(80))
-    last_name = db.Column(db.String(80))
+    userid = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    firstname = db.Column(db.String(80))
+    lastname = db.Column(db.String(80))
     username = db.Column(db.String(80), unique=True)
+    age = db.Column(db.Integer)
+    gender = db.Column(db.String(1))
+    biography = db.Column(db.Text)
+    image = db.Column(db.String(255))
+    created_on = db.Column(db.String(80))
 
-    def is_authenticated(self):
-        return True
+    def __init__(self, userid, firstname, lastname, username, age, gender, biography, image, createdOn):
+        self.userid = userid
+        self.firstname = firstname
+        self.lastname = lastname
+        self.username = username
+        self.age = age
+        self.gender = gender
+        self.biography = biography
+        self.image = image
+        self.created_on = createdOn
 
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id(self):
+    def get_userid(self):
         try:
-            return unicode(self.id)  # python 2 support
+            return unicode(self.userid)  # python 2 support
         except NameError:
-            return str(self.id)  # python 3 support
+            return str(self.userid)  # python 3 support
 
     def __repr__(self):
         return '<User %r>' % (self.username)

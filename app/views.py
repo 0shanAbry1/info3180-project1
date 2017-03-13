@@ -5,11 +5,15 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
-from app import app, db, login_manager
-from flask import render_template, request, redirect, url_for, flash
+from app import app, db
+from flask import render_template, request, redirect, url_for, flash, json, jsonify
 from forms import ProfileForm
-from models import UserProfile
+from app.models import UserProfile
+from werkzeug.utils import secure_filename
 
+import time
+import os
+import random
 
 ###
 # Routing for your application.
@@ -17,44 +21,60 @@ from models import UserProfile
 
 @app.route('/')
 def home():
-    """Render website's home page."""
+    """Render the website's home page."""
     return render_template('home.html')
+
 
 @app.route('/about/')
 def about():
     """Render the website's about page."""
     return render_template('about.html')
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    form = LoginForm()
-    if request.method == "POST":
-        # change this to actually validate the entire form submission
-        # and not just one field
-        if form.username.data:
-            # Get the username and password values from the form.
 
-            # using your model, query database for a user based on the username
-            # and password submitted
-            # store the result of that query to a `user` variable so it can be
-            # passed to the login_user() method.
+@app.route('/profile/', methods=['GET','POST'])
+def add_profile():
+    """Renders the new user profile form"""
+    form = ProfileForm() #Instance of the form
+    
+    if request.method == "POST": #Handles POST requests
+        if form.validate_on_submit(): #Form validation
+            firstname = request.form['firstname']
+            lastname = request.form['lastname']
+            username = request.form['username']
+            age = request.form['age']
+            biography = request.form['biography']
+            gender = request.form['gender']
+             
+            imageFolder = app.config["UPLOAD_FOLDER"]
+            image = request.files['image']
+            
+            if(image.filename == ''):
+                imageName = "default-profilePicture.jpg"
+            else:
+                imageName = secure_filename(image.filename)
+                image.save(os.path.join(imageFolder, imageName))
+                
+            #I am here!!!!!!!!!!!!!!! Remember to create folder
 
-            # get user id, load into session
-            login_user(user)
-
-            # remember to flash a message to the user
-            return redirect(url_for("home")) # they should be redirected to a secure-page route instead
-    return render_template("login.html", form=form)
-
-# user_loader callback. This callback is used to reload the user object from
-# the user ID stored in the session
-@login_manager.user_loader
-def load_user(id):
-    return UserProfile.query.get(int(id))
+@app.route('/profiles/', methods=['GET','POST'])
 
 ###
 # The functions below should be applicable to all Flask apps.
 ###
+
+def timeinfo():
+    """ Returns the current datetime """
+    return time.strftime("%d %b %Y")
+
+
+def flash_errors(form):
+    """Flashes form errors"""
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(u"Error in the %s field - %s" % (
+                getattr(form, field).label.text,
+                error), 'danger')
+
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):
