@@ -23,8 +23,8 @@ class ProfileForm(FlaskForm):
     #Select option >> SelectField
     gender = SelectField('Gender', choices=[('F','Female'),('M','Male'),('O','Other')], default=('O','Other'))
     
-    def __init__(self, *args. **kwargs):
-        FlaskForm.__init__(self, *args. **kwargs)
+    def __init__(self, *args, **kwargs):
+        FlaskForm.__init__(self, *args, **kwargs)
         
     def validate(self):
         """Uniqueness of the username entered"""

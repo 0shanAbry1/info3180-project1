@@ -6,7 +6,7 @@ This file creates your application.
 """
 
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash, json, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from forms import ProfileForm
 from app.models import UserProfile
 from werkzeug.utils import secure_filename
@@ -33,11 +33,12 @@ def about():
 
 @app.route('/profile/', methods=['GET','POST'])
 def add_profile():
-    """Renders the new user profile form"""
+    """Renders the profile form to add a new user"""
     form = ProfileForm() #Instance of the form
     
-    if request.method == "POST": #Handles POST requests
-        if form.validate_on_submit(): #Form validation
+    if(request.method == 'POST'): #Handles POST requests
+        if form.validate_on_submit(): #Form is valid
+            # Retrieve form data
             firstname = request.form['firstname']
             lastname = request.form['lastname']
             username = request.form['username']
@@ -48,15 +49,75 @@ def add_profile():
             imageFolder = app.config["UPLOAD_FOLDER"]
             image = request.files['image']
             
+            #Determines the file name of the image
             if(image.filename == ''):
                 imageName = "default-profilePicture.jpg"
             else:
                 imageName = secure_filename(image.filename)
                 image.save(os.path.join(imageFolder, imageName))
+            
+            while True:
+                userid = random.randint(7000000,7999999) #Generates a random id for the user
+                userid_data = UserProfile.query.filter_by(userid=userid).first()
                 
-            #I am here!!!!!!!!!!!!!!! Remember to create folder
+                if userid_data is None: #Genereated userid is unique
+                    break
+                
+                created_on = timeinfo() #Retrieves today's date
+                
+                entry = UserProfile(userid, firstname, lastname, username, age, gender, biography, imageName, created_on)
+                db.session.add(entry)
+                db.session.commit()
+                
+                flash('New profile for user added successfully', 'success')
+                
+                return redirect(url_for('view_profile', userid=userid))
+                #return redirect('/profile/' + userid + '/')
+        else: #Form is invalid
+            flash_errors(form)
+    
+    #Default >> GET Request
+    return render_template('add_profile.html', form=form)
 
 @app.route('/profiles/', methods=['GET','POST'])
+def list_profiles():
+    """ Renders an html template (GET) and json (POST) for a list of all user profiles"""
+    profiles = db.session.query(UserProfile).all() #Retrieves all the profiles records from the database
+    
+    if(request.method == 'POST' and request.headers['Content-Type'] == 'application/json'):
+        list_profJson = [] #List of profile jsons
+        
+        if profiles: #Not empty >> profiles
+            for profile in profiles: # Traverse the query result
+                profJson = jsonify(username=profile.username, userid=profile.userid)
+                list_profJson.append(profJson)
+        
+        return jsonify(users=list_profJson)
+    elif(request.method == 'GET'):
+        if not profiles:
+            flash('No users exist. Please add a new user to create a listing.', 'danger')
+            return redirect(url_for('add_profile'))
+        else:
+            return render_template('profiles_listing.html', profiles=profiles)
+
+
+@app.route('/profile/<userid>/', methods=['GET','POST'])
+def view_profile(userid):
+    """ Renders an html template (GET) and json (POST) for an individual user profile"""
+    user_profile = UserProfile.query.filter_by(userid=userid).first() 
+    
+    if(request.method == 'POST' and request.headers['Content-Type'] == 'application/json'):
+        if user_profile: #Not empty >> user_profile
+            return jsonify(userid=user_profile.userid, username=user_profile.username, image=user_profile.image, gender=user_profile.gender, age=user_profile.age, profile_created_on=user_profile.created_on)
+        else: #Empty >> user_profile
+            return jsonify(user_profile)
+    elif(request.method == 'GET'):
+        if not user_profile: #Empty >> user_profile
+            flash('User does not exist.','danger')
+            return redirect(url_for('list_profiles'))
+        else: #Not empty >> user_profile
+            return render_template('view_profile.html', user_profile=user_profile)
+
 
 ###
 # The functions below should be applicable to all Flask apps.
