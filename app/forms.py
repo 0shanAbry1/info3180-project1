@@ -9,9 +9,9 @@ from models import UserProfile
 
 class ProfileForm(FlaskForm):
     # Text fields >> StringField
-    username = StringField('User Name', validators=[InputRequired()])
     firstname = StringField('First Name', validators=[InputRequired()])
     lastname = StringField('Last Name', validators=[InputRequired()])
+    username = StringField('User Name', validators=[InputRequired()])
     age = StringField('Age', validators=[InputRequired()])
     
     #Text field >> TextAreaField
@@ -21,7 +21,7 @@ class ProfileForm(FlaskForm):
     image = FileField('Profile Picture', validators=[FileAllowed(['png','jpg','jpeg','gif'], 'Only an image file allowed')])
     
     #Select option >> SelectField
-    gender = SelectField('Gender', choices=[('F','Female'),('M','Male'),('O','Other')], default=('O','Other'))
+    gender = SelectField('Gender', choices=[('F','Female'),('M','Male'),('O','Other')])
     
     def __init__(self, *args, **kwargs):
         FlaskForm.__init__(self, *args, **kwargs)
