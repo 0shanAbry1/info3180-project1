@@ -25,13 +25,13 @@ def home():
     return render_template('home.html')
 
 
-@app.route('/about/')
+@app.route('/about')
 def about():
     """Render the website's about page."""
     return render_template('about.html')
 
 
-@app.route('/profile/', methods=['GET','POST'])
+@app.route('/profile', methods=['GET','POST'])
 def add_profile():
     """Renders the profile form to add a new user"""
     form = ProfileForm() #Instance of the form
@@ -45,16 +45,16 @@ def add_profile():
             age = request.form['age']
             biography = request.form['biography']
             gender = request.form['gender']
-             
+            
             imageFolder = app.config["UPLOAD_FOLDER"]
-            image = request.files['image']
+            imageFile = request.files['image']
             
             #Determines the file name of the image
-            if(image.filename == ''):
+            if(imageFile.filename == ''):
                 imageName = "default-profilePicture.jpg"
             else:
-                imageName = secure_filename(image.filename)
-                image.save(os.path.join(imageFolder, imageName))
+                imageName = secure_filename(imageFile.filename)
+                imageFile.save(os.path.join(imageFolder, imageName))
             
             while True:
                 userid = random.randint(7000000,7999999) #Generates a random id for the user
@@ -69,39 +69,44 @@ def add_profile():
                 db.session.add(entry)
                 db.session.commit()
                 
-                flash('New profile for user added successfully', 'success')
+                flash('New profile for user added successfully :)', 'success')
                 
-                return redirect(url_for('view_profile', userid=userid))
-                #return redirect('/profile/' + userid + '/')
-        else: #Form is invalid
-            flash_errors(form)
+                # return redirect(url_for('view_profile', userid=userid))
+                # return redirect('/profile/' + userid)
+                return redirect(url_for('list_profiles'))
+    
+    flash_errors(form)
     
     #Default >> GET Request
     return render_template('add_profile.html', form=form)
 
-@app.route('/profiles/', methods=['GET','POST'])
+@app.route('/profiles', methods=['GET','POST'])
 def list_profiles():
     """ Renders an html template (GET) and json (POST) for a list of all user profiles"""
     profiles = db.session.query(UserProfile).all() #Retrieves all the profiles records from the database
     
     if(request.method == 'POST' and request.headers['Content-Type'] == 'application/json'):
-        list_profJson = [] #List of profile jsons
+        #list_profJson = [] #List of profile jsons
+        list_profDict = [] #List of profile dictionaries
         
-        if profiles: #Not empty >> profiles
-            for profile in profiles: # Traverse the query result
-                profJson = jsonify(username=profile.username, userid=profile.userid)
-                list_profJson.append(profJson)
+        for profile in profiles: # Traverse the query result
+            #profJson = jsonify(username=profile.username, userid=profile.userid)
+            #list_profJson.append(profJson)
+            
+            profDict = {'username': profile.username, 'userid': profile.userid}
+            list_profDict.append(profDict)
         
-        return jsonify(users=list_profJson)
-    elif(request.method == 'GET'):
+        #return jsonify(users=list_profJson)
+        return jsonify(users=list_profDict)
+    else:
         if not profiles:
             flash('No users exist. Please add a new user to create a listing.', 'danger')
             return redirect(url_for('add_profile'))
-        else:
-            return render_template('profiles_listing.html', profiles=profiles)
+            
+        return render_template('profiles_listing.html', profiles=profiles)
 
 
-@app.route('/profile/<userid>/', methods=['GET','POST'])
+@app.route('/profile/<userid>', methods=['GET','POST'])
 def view_profile(userid):
     """ Renders an html template (GET) and json (POST) for an individual user profile"""
     user_profile = UserProfile.query.filter_by(userid=userid).first() 

@@ -11,7 +11,7 @@ class UserProfile(db.Model):
     image = db.Column(db.String(255))
     created_on = db.Column(db.String(80))
 
-    def __init__(self, userid, firstname, lastname, username, age, gender, biography, image, createdOn):
+    def __init__(self, userid, firstname, lastname, username, age, gender, biography, image, created_on):
         self.userid = userid
         self.firstname = firstname
         self.lastname = lastname
@@ -20,7 +20,7 @@ class UserProfile(db.Model):
         self.gender = gender
         self.biography = biography
         self.image = image
-        self.created_on = createdOn
+        self.created_on = created_on
 
     def get_userid(self):
         try:
