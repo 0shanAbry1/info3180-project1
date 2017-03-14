@@ -31,7 +31,7 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/profile', methods=['GET','POST'])
+@app.route('/profile/', methods=['GET','POST'])
 def add_profile():
     """Renders the profile form to add a new user"""
     form = ProfileForm() #Instance of the form
@@ -63,17 +63,17 @@ def add_profile():
                 if userid_data is None: #Genereated userid is unique
                     break
                 
-                created_on = timeinfo() #Retrieves today's date
+            created_on = timeinfo() #Retrieves today's date
                 
-                entry = UserProfile(userid, firstname, lastname, username, age, gender, biography, imageName, created_on)
-                db.session.add(entry)
-                db.session.commit()
+            entry = UserProfile(userid, firstname, lastname, username, age, gender, biography, imageName, created_on)
+            db.session.add(entry)
+            db.session.commit()
                 
-                flash('New profile for user added successfully :)', 'success')
+            flash('New profile for user added successfully :)', 'success')
                 
-                # return redirect(url_for('view_profile', userid=userid))
-                # return redirect('/profile/' + userid)
-                return redirect(url_for('list_profiles'))
+            # return redirect(url_for('view_profile', userid=userid))
+            # return redirect('/profile/' + userid)
+            return redirect(url_for('list_profiles'))
     
     flash_errors(form)
     

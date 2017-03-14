@@ -8,7 +8,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://admin:test01@localhost/pro
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True # added just to suppress a warning
 
 # Storage folder - Images uploaded
-UPLOAD_FOLDER = '.app/static/uploads'
+UPLOAD_FOLDER = 'app/static/uploads'
 
 db = SQLAlchemy(app)
 
